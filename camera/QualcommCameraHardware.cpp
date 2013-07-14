@@ -8755,6 +8755,7 @@ status_t QualcommCameraHardware::setRotation(const CameraParameters& params)
             || rotation == 270) {
           rotation = (rotation + sensor_rotation)%360;
           mParameters.set(CameraParameters::KEY_ROTATION, rotation);
+	  ALOGE("setRotation: rotation=%d", rotation);
           mRotation = rotation;
         } else {
             ALOGE("Invalid rotation value: %d", rotation);
@@ -9005,6 +9006,10 @@ QualcommCameraHardware::DispMemPool::~DispMemPool()
 status_t QualcommCameraHardware::setOrientation(const CameraParameters& params)
 {
     const char *str = params.get("orientation");
+    if (str == NULL) {
+	ALOGE("No orientation found,using default portrait");
+	str = "portrait";
+    }
     ALOGE("debug: orientation is %s", str);
     if (str != NULL) {
         if (strcmp(str, "portrait") == 0 || strcmp(str, "landscape") == 0) {
@@ -9863,58 +9868,50 @@ extern "C" void HAL_getCameraInfo(int cameraId, struct CameraInfo* cameraInfo)
         ALOGE("cameraInfo is NULL");
         return;
     }
-    ALOGE("debug: cameraId=%d",cameraId);
-//    for(i = 0; i < HAL_numOfCameras; i++) {
-	if(cameraId == 0) {
-	    i = 0;
-	    HAL_cameraInfo[i].position == BACK_CAMERA;
-	    HAL_cameraInfo[i].sensor_mount_angle = 0;
-	    HAL_cameraInfo[i].modes_supported == CAMERA_MODE_3D; 
+
+    property_get("ro.board.platform",mDeviceName," ");
+
+    for(i = 0; i < HAL_numOfCameras; i++) {
+        if(i == cameraId) {
             ALOGE("Found a matching camera info for ID %d", cameraId);
-// 	    ALOGE("debug: this camera sensor is %i", HAL_cameraInfo[i].position);
-	    cameraInfo->facing = HAL_cameraInfo[i].position;
-//	    cameraInfo->facing = (HAL_cameraInfo[i].position == BACK_CAMERA)? CAMERA_FACING_BACK : CAMERA_FACING_FRONT;
-//            if(cameraInfo->facing == CAMERA_FACING_FRONT) {
-//		ALOGE("debug: this is a front facing camera");
-//            cameraInfo->orientation = HAL_cameraInfo.sensor_mount_angle;
-//            }
-//            else {
-//            cameraInfo->orientation = ((APP_ORIENTATION - HAL_cameraInfo[i].sensor_mount_angle) + 360)%360;
-	    cameraInfo->orientation = 270;  		
-//	    }
-            ALOGE("Orientation = %d", cameraInfo->orientation);
+            cameraInfo->facing = (HAL_cameraInfo[i].position == BACK_CAMERA)?
+                                   CAMERA_FACING_BACK : CAMERA_FACING_FRONT;
+            // App Orientation not needed for 7x27 , sensor mount angle 0 is
+            // enough.
+            if(cameraInfo->facing == CAMERA_FACING_FRONT)
+                //cameraInfo->orientation = HAL_cameraInfo[i].sensor_mount_angle;
+		cameraInfo->orientation = 270;
+            else if( !strncmp(mDeviceName, "msm7625a", 8))
+                cameraInfo->orientation = HAL_cameraInfo[i].sensor_mount_angle;
+            else if( !strncmp(mDeviceName, "msm7627a", 8))
+                cameraInfo->orientation = HAL_cameraInfo[i].sensor_mount_angle;
+            else if( !strncmp(mDeviceName, "msm7627", 7))
+                cameraInfo->orientation = HAL_cameraInfo[i].sensor_mount_angle;
+            else if( !strncmp(mDeviceName, "msm8660", 7))
+                cameraInfo->orientation = HAL_cameraInfo[i].sensor_mount_angle;
+            else
+                //cameraInfo->orientation = ((APP_ORIENTATION - HAL_cameraInfo[i].sensor_mount_angle) + 360)%360;
+	        cameraInfo->orientation = 270; 
+            ALOGE("%s: orientation = %d", __FUNCTION__, cameraInfo->orientation);
             sensor_rotation = HAL_cameraInfo[i].sensor_mount_angle;
-//            cameraInfo->mode = 0;
-//            if(HAL_cameraInfo.modes_supported & CAMERA_MODE_2D)
-//                cameraInfo->mode |= CAMERA_SUPPORT_MODE_2D;
-//            if(HAL_cameraInfo.modes_supported & CAMERA_MODE_3D)
-                cameraInfo->mode == CAMERA_SUPPORT_MODE_3D;
-//           else{
-//                cameraInfo->mode |= CAMERA_NONZSL_MODE;
-//            }
+            cameraInfo->mode = 0;
+            if(HAL_cameraInfo[i].modes_supported & CAMERA_MODE_2D)
+                cameraInfo->mode |= CAMERA_SUPPORT_MODE_2D;
+            if(HAL_cameraInfo[i].modes_supported & CAMERA_MODE_3D)
+                cameraInfo->mode |= CAMERA_SUPPORT_MODE_3D;
+            if((HAL_cameraInfo[i].position == BACK_CAMERA )&&
+                !strncmp(mDeviceName, "msm8660", 7)){
+                cameraInfo->mode |= CAMERA_ZSL_MODE;
+            } else{
+                cameraInfo->mode |= CAMERA_NONZSL_MODE;
+            }
 
             ALOGE("%s: modes supported = %d", __FUNCTION__, cameraInfo->mode);
+
             return;
-       }
-	if(cameraId == 1) {
-	    i = 1;
-	    HAL_cameraInfo[i].position == CAMERA_FACING_FRONT;
-	    HAL_cameraInfo[i].sensor_mount_angle = 0;
-	    HAL_cameraInfo[i].modes_supported == CAMERA_MODE_2D; 
-            ALOGE("Found a matching camera info for ID %d", cameraId);
- 	    ALOGE("debug: this camera sensor is %i", HAL_cameraInfo[i].position);
-	    cameraInfo->facing = HAL_cameraInfo[i].position;
-//            cameraInfo->orientation = ((APP_ORIENTATION - HAL_cameraInfo[i].sensor_mount_angle) + 360)%360;
-	    cameraInfo->orientation = 270;
-            ALOGE("Orientation = %d", cameraInfo->orientation);
-            sensor_rotation = HAL_cameraInfo[i].sensor_mount_angle;
-            cameraInfo->mode == CAMERA_MODE_2D;
-	    return;
-	    }
-//    }
-	else {    
-	    ALOGE("Unable to find matching camera info for ID %d", cameraId);
-	    }
+        }
+    }
+    ALOGE("Unable to find matching camera info for ID %d", cameraId);
 }
 
 }; // namespace android

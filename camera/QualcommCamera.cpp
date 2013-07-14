@@ -310,15 +310,6 @@ extern "C" int get_number_of_cameras()
 
 extern "C" int get_camera_info(int camera_id, struct camera_info *info)
 {
-    int rc = 0;
-    CameraInfo cameraInfo;
-    HAL_getCameraInfo(camera_id, &cameraInfo);
-    info->facing = cameraInfo.facing;
-    info->orientation = cameraInfo.orientation;
-    ALOGE("%s: id:%i faceing:%i orientation: %i", __FUNCTION__,camera_id, info->facing, info->orientation);
-    return rc;
-}
-/*
   int rc = -1;
   ALOGE("Q%s: E", __func__);
   if(info) {
@@ -329,11 +320,12 @@ extern "C" int get_camera_info(int camera_id, struct camera_info *info)
       rc = 0;
       info->facing = camInfo.facing;
       info->orientation = camInfo.orientation;
+      ALOGE("debug: facing=%d orientation=%d", camInfo.facing, camInfo.orientation);	
     }
   }
    ALOGV("Q%s: X", __func__);
    return rc;
-}*/
+}
 
 
 /* HAL should return NULL if it fails to open camera hardware. */
