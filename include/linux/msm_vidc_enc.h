@@ -3,6 +3,7 @@
 
 #include <linux/types.h>
 #include <linux/ioctl.h>
+#include <linux/compiler.h>
 
 /** STATUS CODES*/
 /* Base value for status codes */
@@ -44,6 +45,7 @@
 #define VEN_MSG_PAUSE	8
 #define VEN_MSG_RESUME	9
 #define VEN_MSG_STOP_READING_MSG	10
+
 
 /*Buffer flags bits masks*/
 #define VEN_BUFFLAG_EOS	0x00000001
@@ -454,8 +456,12 @@ struct venc_ioctl_msg{
 #define VEN_IOCTL_GET_EXTRADATA \
 	_IOR(VEN_IOCTLBASE_ENC, 49, struct venc_ioctl_msg)
 
-#define VEN_IOCTL_SET_METABUFFER_MODE \
-	_IOW(VEN_IOCTLBASE_ENC, 47, struct venc_ioctl_msg)
+/*IOCTL params:SET: InputData - NULL, OutputData - NULL.*/
+#define VEN_IOCTL_SET_SLICE_DELIVERY_MODE \
+	_IO(VEN_IOCTLBASE_ENC, 50)
+
+#define VEN_IOCTL_SET_H263_PLUSPTYPE \
+	_IOW(VEN_IOCTLBASE_ENC, 51, struct venc_ioctl_msg)
 
 struct venc_switch{
 	unsigned char	status;
@@ -518,6 +524,11 @@ struct venc_qprange{
 	unsigned long	maxqp;
 	unsigned long	minqp;
 };
+
+struct venc_plusptype {
+	unsigned long	plusptype_enable;
+};
+
 struct venc_intraperiod{
 	unsigned long	num_pframes;
 	unsigned long	num_bframes;
@@ -614,3 +625,4 @@ struct venc_recon_buff_size{
 };
 
 #endif /* _MSM_VIDC_ENC_H_ */
+

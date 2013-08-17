@@ -51,11 +51,14 @@ PRODUCT_PROPERTY_OVERRIDES += \
 
 # Configure the qcom surface compositor
 PRODUCT_PROPERTY_OVERRIDES += \
-    debug.composition.type=c2d \
+    debug.composition.type=gpu \
     debug.enabletr=true \
     com.qc.hardware=true \
     hwui.render_dirty_regions=false \
-    hwui.disable_vsync=true
+    hwui.disable_vsync=true \
+    ro.debuggable=1 \
+    ro.use_data_netmgrd=true \
+    persist.sys.usb.config=mass_storage,adb
 
 # Set default USB interface for first boot
 PRODUCT_COPY_FILES += \
@@ -66,7 +69,8 @@ DEVICE_PACKAGE_OVERLAYS += device/lge/victor-common/overlay
 # gsm config xml file
 PRODUCT_COPY_FILES += \
     device/lge/victor-common/configs/spn-conf.xml:system/etc/spn-conf.xml \
-    device/lge/victor-common/configs/voicemail-conf.xml:system/etc/voicemail-conf.xml
+    device/lge/victor-common/configs/voicemail-conf.xml:system/etc/voicemail-conf.xml \
+    device/lge/victor-common/configs/audio_policy.conf:system/etc/audio_policy.conf
 
 # Audio
 PRODUCT_PACKAGES += \
@@ -101,6 +105,10 @@ PRODUCT_PACKAGES += \
     lights.victor \
     camera.victor \
     sensors.default
+
+# WiFi
+PRODUCT_PACKAGES += \
+    libnetcmdiface
 
 # Live Wallpapers
 PRODUCT_PACKAGES += \

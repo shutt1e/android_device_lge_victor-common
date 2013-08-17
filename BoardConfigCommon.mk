@@ -2,52 +2,76 @@
 USE_CAMERA_STUB := true
 TARGET_NO_BOOTLOADER := true
 
+TARGET_SPECIFIC_HEADER_PATH := device/lge/victor-common/include
+
 # Platform
 TARGET_BOARD_PLATFORM := msm7x30
 TARGET_BOARD_PLATFORM_GPU := qcom-adreno200
+
 TARGET_ARCH := arm
 TARGET_CPU_ABI := armeabi-v7a
 TARGET_CPU_ABI2 := armeabi
 TARGET_ARCH_VARIANT := armv7-a-neon
 ARCH_ARM_HAVE_TLS_REGISTER := true
 TARGET_USE_SCORPION_BIONIC_OPTIMIZATION := true
-TARGET_USE_SCORPION_PLD_SET := true
-TARGET_SCORPION_BIONIC_PLDOFFS := 6
-TARGET_SCORPION_BIONIC_PLDSIZE := 128
 
 TARGET_GLOBAL_CFLAGS += -mfpu=neon -mfloat-abi=softfp
 TARGET_GLOBAL_CPPFLAGS += -mfpu=neon -mfloat-abi=softfp
 
 # QCOM Hardware
 BOARD_USES_QCOM_HARDWARE := true
+BOARD_USES_QCOM_GPS := true
 BOARD_USES_QCOM_LIBS := true
+BOARD_USES_QCOM_LIBRPC := true
+
+# Display
+TARGET_QCOM_DISPLAY_VARIANT := legacy
+BOARD_EGL_NEEDS_LEGACY_FB := true
 USE_OPENGL_RENDERER := true
+TARGET_USES_ION := false
 TARGET_USES_C2D_COMPOSITION := true
 TARGET_NO_HW_VSYNC := true
-TARGET_USES_ION := false
 COMMON_GLOBAL_CFLAGS += -DQCOM_HARDWARE
 COMMON_GLOBAL_CFLAGS += -DQCOM_NO_SECURE_PLAYBACK
 BOARD_EGL_CFG := device/lge/victor-common/configs/egl.cfg
+
 TARGET_BOOTLOADER_BOARD_NAME := victor
-TARGET_KERNEL_SOURCE := kernel/lge/msm7x30
-TARGET_SPECIFIC_HEADER_PATH := device/lge/victor-common/include
+
+# Audio
+TARGET_QCOM_AUDIO_VARIANT := caf
+BOARD_USES_GENERIC_AUDIO := false
+BOARD_USES_QCOM_AUDIO_VOIPMUTE := true
+BOARD_USES_QCOM_AUDIO_RESETALL := true
+
+# Bluetooth
+BOARD_HAVE_BLUETOOTH := true
+BOARD_HAVE_BLUETOOTH_BCM := true
+BOARD_BLUEDROID_VENDOR_CONF := device/lge/victor-common/bluetooth/vnd_msm7x30.txt
+BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/lge/victor-common/bluetooth/include
 
 # Wifi related defines
+WIFI_BAND := 802_11_ABGN
+WPA_SUPPLICANT_VERSION := VER_0_8_X
+BOARD_WPA_SUPPLICANT_DRIVER := WEXT
+BOARD_WPA_SUPPLICANT_PRIVATE_LIB := lib_driver_cmd_wext
+BOARD_HOSTAPD_DRIVER := WEXT
+BOARD_HOSTAPD_PRIVATE_LIB := lib_driver_cmd_wext
 BOARD_WLAN_DEVICE := bcm4330
 WIFI_DRIVER_FW_PATH_STA := "/system/etc/firmware/rtecdc.bin"
 WIFI_DRIVER_FW_PATH_AP := "/system/etc/firmware/rtecdc-apsta.bin"
+WIFI_DRIVER_FW_PATH_P2P := "/system/etc/firmware/rtecdc-apsta.bin"
+WIFI_DRIVER_FW_PATH_PARAM := "/sys/module/wireless/parameters/firmware_path"
 WIFI_DRIVER_MODULE_NAME := "wireless"
 WIFI_DRIVER_MODULE_PATH := "/system/lib/modules/wireless.ko"
 WIFI_DRIVER_MODULE_ARG := "firmware_path=/etc/firmware/rtecdc.bin nvram_path=/etc/wl/nvram.txt config_path=/data/misc/wifi/config"
-BOARD_WPA_SUPPLICANT_PRIVATE_LIB := lib_driver_cmd_wext
-WPA_SUPPLICANT_VERSION := VER_0_8_X
 WIFI_DRIVER_HAS_LGE_SOFTAP := true
-BOARD_WPA_SUPPLICANT_DRIVER := WEXT
 
+# Hdmi
 TARGET_QCOM_HDMI_OUT := false
 
 ## WE HAVE LEGACY RIL
 BOARD_USES_LEGACY_RIL := true
+BOARD_RIL_CLASS := ../../../device/lge/victor-common/ril/
 
 # qcom webkit
 TARGET_FORCE_CPU_UPLOAD := true
@@ -55,32 +79,27 @@ TARGET_FORCE_CPU_UPLOAD := true
 #DYNAMIC_SHARED_LIBV8SO := true
 ENABLE_WEBGL := true
 
-BOARD_PREBUILT_LIBAUDIO := false
-BOARD_USES_QCOM_AUDIO_VOIPMUTE := true
-BOARD_USES_QCOM_AUDIO_RESETALL := true
-
-BOARD_HAVE_BLUETOOTH := true
-BOARD_HAVE_BLUETOOTH_BCM := true
-
 # GPS
-BOARD_USES_QCOM_LIBRPC := true
-BOARD_USES_QCOM_GPS := true
+BOARD_VENDOR_QCOM_AMSS_VERSION := 50000
 BOARD_VENDOR_QCOM_GPS_LOC_API_HARDWARE := victor
 BOARD_VENDOR_QCOM_GPS_LOC_API_AMSS_VERSION := 50000
 
 # Lights
-TARGET_PROVIDES_LIBLIGHTS := true
+TARGET_PROVIDES_LIBLIGHT := true
 
 # Camera
 BOARD_NEEDS_MEMORYHEAPPMEM := true
 TARGET_DISABLE_ARM_PIE := true
 
-
+# Kernel
 BOARD_KERNEL_CMDLINE := no_console_suspend=1 console=ttyMSM1 androidboot.hardware=victor
 BOARD_KERNEL_RECOVERY_CMDLINE := $(BOARD_KERNEL_CMDLINE)
-
 BOARD_KERNEL_BASE := 0x00200000
 BOARD_KERNEL_PAGE_SIZE := 4096
+
+# Boot Animation
+TARGET_BOOTANIMATION_PRELOAD := true
+TARGET_BOOTANIMATION_TEXTURE_CACHE := true
 
 # cat /proc/emmc
 #dev: size erasesize name

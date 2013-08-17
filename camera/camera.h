@@ -40,6 +40,12 @@
 #define EXIFTAGID_ISO_SPEED_RATING     0x908827
 #define EXIFTAGID_FLASH                0x9d9209
 
+enum {
+    CAMERA_CMD_HISTOGRAM_ON = 8,
+    CAMERA_CMD_HISTOGRAM_OFF = 9,
+    CAMERA_CMD_HISTOGRAM_SEND_DATA = 10,
+};
+
 struct jpeg_buf_t;
 typedef struct jpeg_buf_t * jpeg_buffer_t;
 

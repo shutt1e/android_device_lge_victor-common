@@ -1,3 +1,8 @@
+# libmmjpeg.so need to be copied on out/target/product/e730/obj/lib
+$(shell mkdir -p $(OUT)/obj/lib)
+$(shell cp $(PWD)/vendor/lge/e730/proprietary/libmmjpeg.so $(OUT)/obj/lib)
+$(shell mkdir -p $(OUT)/obj/SHARED_LIBRARIES/libmmjpeg_intermediates/)
+$(shell touch $(OUT)/obj/SHARED_LIBRARIES/libmmjpeg_intermediates/export_includes)
 
 # When zero we link against libmmcamera; when 1, we dlopen libmmcamera.
 DLOPEN_LIBMMCAMERA:=1
@@ -23,6 +28,7 @@ MM_CAM_FILES:= \
 endif
 
 LOCAL_CFLAGS+= -DHW_ENCODE
+
 
 LOCAL_C_INCLUDES+= $(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/usr/include
 LOCAL_ADDITIONAL_DEPENDENCIES := $(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/usr

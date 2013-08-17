@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 The CyanogenMod Project
+ * Copyright (C) 2012 The CyanogenMod Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import android.os.Message;
 import android.os.Parcel;
 import android.telephony.SmsMessage;
 import android.os.SystemProperties;
+import android.telephony.SignalStrength;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -37,15 +38,10 @@ import com.android.internal.telephony.cdma.CdmaInformationRecords;
 import java.util.ArrayList;
 
 /**
- * Qualcomm RIL class for basebands that do not send the SIM status
- * piggybacked in RIL_UNSOL_RESPONSE_RADIO_STATE_CHANGED. Instead,
- * these radios will send radio state and we have to query for SIM
- * status separately.
- * Custom Qualcomm No SimReady RIL for LGE
- * Patch by shutt1e for E730/E739 @ 2013 
+ * Custom Qualcomm No SimReady RIL using the latest Uicc stack
+ *
  * {@hide}
  */
-
 public class victorQualcommRIL extends RIL implements CommandsInterface {
     protected int mPinState;
     protected HandlerThread mIccThread;
@@ -63,6 +59,7 @@ public class victorQualcommRIL extends RIL implements CommandsInterface {
     private final int RIL_INT_RADIO_ON_NG = 10;
     private final int RIL_INT_RADIO_ON_HTC = 13;
 
+
     public victorQualcommRIL(Context context, int networkMode, int cdmaSubscription) {
         super(context, networkMode, cdmaSubscription);
         mSetPreferredNetworkType = -1;
@@ -70,52 +67,8 @@ public class victorQualcommRIL extends RIL implements CommandsInterface {
     }
 
     @Override public void
-    supplyIccPin(String pin, Message result) {
-        supplyIccPinForApp(pin, mAid, result);
-    }
-
-    @Override
-    public void
-    supplyIccPinForApp(String pin, String mAid, Message result) {
-        //Note: This RIL request has not been renamed to ICC,
-        //       but this request is also valid for SIM and RUIM
-        RILRequest rr = RILRequest.obtain(RIL_REQUEST_ENTER_SIM_PIN, result);
-
-
-        if (RILJ_LOGD) riljLog(rr.serialString() + "VCRIL SupplyPin > " + requestToString(rr.mRequest));
-
-        rr.mp.writeString(mAid);
-        rr.mp.writeString(pin);
-
-        send(rr);
-    }
-        
-    @Override
-    public void
-    supplyIccPuk(String puk, String newPin, Message result) {
-	supplyIccPukForApp(puk, newPin, mAid, result);
-    }
-
-    @Override
-    public void
-    supplyIccPukForApp(String puk, String newPin, String mAid, Message result) {
-        //Note: This RIL request has not been renamed to ICC,
-        //       but this request is also valid for SIM and RUIM
-        RILRequest rr = RILRequest.obtain(RIL_REQUEST_ENTER_SIM_PUK, result);
-
-        if (RILJ_LOGD) riljLog(rr.serialString() + "VCRIL SupplyPuk > " + requestToString(rr.mRequest));
-
-        rr.mp.writeString(mAid);
-        rr.mp.writeString(puk);
-        rr.mp.writeString(newPin);
-
-        send(rr);
-    }
-
-    @Override
-    public void
     supplyIccPin2(String pin, Message result) {
-	supplyIccPin2ForApp(pin, mAid, result);
+        supplyIccPin2ForApp(pin, mAid, result);
     }
 
     @Override
@@ -133,54 +86,9 @@ public class victorQualcommRIL extends RIL implements CommandsInterface {
         send(rr);
     }
 
-    @Override
-    public void
-    supplyIccPuk2(String puk2, String newPin2, Message result) {
-	supplyIccPuk2ForApp(puk2, newPin2, mAid, result);
-    }
-
-    @Override
-    public void
-    supplyIccPuk2ForApp(String puk2, String newPin2, String mAid, Message result) {
-        //Note: This RIL request has not been renamed to ICC,
-        //       but this request is also valid for SIM and RUIM
-        RILRequest rr = RILRequest.obtain(RIL_REQUEST_ENTER_SIM_PUK2, result);
-
-        if (RILJ_LOGD) riljLog(rr.serialString() + "VCRIL SupplyPuk2 > " + requestToString(rr.mRequest));
-
-        rr.mp.writeString(mAid);
-        rr.mp.writeString(puk2);
-        rr.mp.writeString(newPin2);
-
-        send(rr);
-    }
-
-    @Override
-    public void
-    changeIccPin(String oldPin, String newPin, Message result) {
-	changeIccPinForApp(oldPin, newPin, mAid, result);
-    }
-
-    @Override
-    public void
-    changeIccPinForApp(String oldPin, String newPin, String mAid, Message result) {
-        //Note: This RIL request has not been renamed to ICC,
-        //       but this request is also valid for SIM and RUIM
-        RILRequest rr = RILRequest.obtain(RIL_REQUEST_CHANGE_SIM_PIN, result);
-
-        if (RILJ_LOGD) riljLog(rr.serialString() + "VCRIL ChangePin > " + requestToString(rr.mRequest));
-
-        rr.mp.writeString(mAid);
-        rr.mp.writeString(oldPin);
-        rr.mp.writeString(newPin);
-
-        send(rr);
-    }
-
-    @Override
-    public void
+    @Override public void
     changeIccPin2(String oldPin2, String newPin2, Message result) {
-	changeIccPin2ForApp(oldPin2, newPin2, mAid, result);
+        changeIccPin2ForApp(oldPin2, newPin2, mAid, result);
     }
 
     @Override
@@ -199,87 +107,44 @@ public class victorQualcommRIL extends RIL implements CommandsInterface {
         send(rr);
     }
 
-    @Override
-    public void
-    getIMSI(Message result) {
-        getIMSIForApp(mAid, result);
-    }
-        
-    @Override
-    public void
-    getIMSIForApp(String aid, Message result) {
-        RILRequest rr = RILRequest.obtain(RIL_REQUEST_GET_IMSI, result);
-
-        rr.mp.writeString(aid);
-
-        if (RILJ_LOGD) riljLog(rr.serialString() +
-                              "> VCRIL getIMSI:RIL_REQUEST_GET_IMSI " +
-                              RIL_REQUEST_GET_IMSI +
-                              " aid: " +aid +
-                              " " + requestToString(rr.mRequest));
-        send(rr);
+    @Override public void
+    supplyIccPuk(String puk, String newPin, Message result) {
+        supplyIccPukForApp(puk, newPin, mAid, result);
     }
 
     @Override
     public void
-    setupDataCall(String radioTechnology, String profile, String apn,
-            String user, String password, String authType, String protocol,
-            Message result) {
-        RILRequest rr
-                = RILRequest.obtain(RIL_REQUEST_SETUP_DATA_CALL, result);
-	riljLog("SetupDataCall entry:");
- 
-        rr.mp.writeInt(7);
-        
-        rr.mp.writeString(radioTechnology);
-        rr.mp.writeString(profile);
-        rr.mp.writeString(apn);
-        rr.mp.writeString(user);
-        rr.mp.writeString(password);
-        rr.mp.writeString(authType);
-        rr.mp.writeString(protocol);
-
-        if (RILJ_LOGD) riljLog(rr.serialString() + "VCRIL > "
-                + requestToString(rr.mRequest) + " RTech:" + radioTechnology + " Profl:"
-                + profile + " Apn:" + apn + " User:" + user + " Pass:"
-                + password + " Auth:" + authType + " Proto:" + protocol);
-
-        send(rr);
-    }
-    
-    @Override
-    public void
-    iccIO (int command, int fileid, String path, int p1, int p2, int p3,
-            String data, String pin2, Message result) {
-        iccIOForApp(command, fileid, path, p1, p2, p3, data, pin2, mAid, result);
-        }        
-
-    @Override
-    public void
-    iccIOForApp (int command, int fileid, String path, int p1, int p2, int p3,
-            String data, String pin2, String aid, Message result) {
+    supplyIccPukForApp(String puk, String newPin, String mAid, Message result) {
         //Note: This RIL request has not been renamed to ICC,
         //       but this request is also valid for SIM and RUIM
-        RILRequest rr
-                = RILRequest.obtain(RIL_REQUEST_SIM_IO, result);
+        RILRequest rr = RILRequest.obtain(RIL_REQUEST_ENTER_SIM_PUK, result);
+
+        if (RILJ_LOGD) riljLog(rr.serialString() + "VCRIL SupplyPuk > " + requestToString(rr.mRequest));
 
         rr.mp.writeString(mAid);
-        rr.mp.writeInt(command);
-        rr.mp.writeInt(fileid);
-        rr.mp.writeString(path);
-        rr.mp.writeInt(p1);
-        rr.mp.writeInt(p2);
-        rr.mp.writeInt(p3);
-        rr.mp.writeString(data);
-        rr.mp.writeString(pin2);
+        rr.mp.writeString(puk);
+        rr.mp.writeString(newPin);
 
-        if (RILJ_LOGD) riljLog(rr.serialString() + "> VCRIL iccIO: "
-                    + " aid: " + mAid + " "
-                    + requestToString(rr.mRequest)
-                    + " 0x" + Integer.toHexString(command)
-                    + " 0x" + Integer.toHexString(fileid) + " "
-                    + " path: " + path + ","
-                    + p1 + "," + p2 + "," + p3);
+        send(rr);
+    }
+
+    @Override public void
+    supplyIccPuk2(String puk2, String newPin2, Message result) {
+        supplyIccPuk2ForApp(puk2, newPin2, mAid, result);
+    }
+
+    @Override
+    public void
+    supplyIccPuk2ForApp(String puk2, String newPin2, String mAid, Message result) {
+        //Note: This RIL request has not been renamed to ICC,
+        //       but this request is also valid for SIM and RUIM
+        RILRequest rr = RILRequest.obtain(RIL_REQUEST_ENTER_SIM_PUK2, result);
+
+        if (RILJ_LOGD) riljLog(rr.serialString() + "VCRIL SupplyPuk2 > " + requestToString(rr.mRequest));
+
+        rr.mp.writeString(mAid);
+        rr.mp.writeString(puk2);
+        rr.mp.writeString(newPin2);
 
         send(rr);
     }
@@ -326,6 +191,7 @@ public class victorQualcommRIL extends RIL implements CommandsInterface {
                         int serviceClass, Message response) {
         setFacilityLockForApp(facility, lockState, password, serviceClass, mAid, response);
     }
+
     @Override
     public void
     setFacilityLockForApp (String facility, boolean lockState, String password,
@@ -352,68 +218,154 @@ public class victorQualcommRIL extends RIL implements CommandsInterface {
     }
 
     @Override
+    public void
+    getIMSI(Message result) {
+        getIMSIForApp(mAid, result);
+    }
+    
+    @Override
+    public void
+    getIMSIForApp(String aid, Message result) {
+        RILRequest rr = RILRequest.obtain(RIL_REQUEST_GET_IMSI, result);
+
+        // rr.mp.writeInt(1);
+        rr.mp.writeString(mAid);
+
+        if (RILJ_LOGD) riljLog(rr.serialString() +
+                              "> VCRIL getIMSI:RIL_REQUEST_GET_IMSI " +
+                              RIL_REQUEST_GET_IMSI +
+                              " aid: " + mAid +
+                              " " + requestToString(rr.mRequest));
+
+        send(rr);
+    }
+
+    @Override
+    public void
+    iccIO (int command, int fileid, String path, int p1, int p2, int p3,
+            String data, String pin2, Message result) {
+        iccIOForApp(command, fileid, path, p1, p2, p3, data, pin2, mAid, result);
+        }
+   
+    @Override
+    public void
+    iccIOForApp (int command, int fileid, String path, int p1, int p2, int p3,
+            String data, String pin2, String aid, Message result) {
+        //Note: This RIL request has not been renamed to ICC,
+        //       but this request is also valid for SIM and RUIM
+        RILRequest rr
+                = RILRequest.obtain(RIL_REQUEST_SIM_IO, result);
+
+        if (mUSIM)
+            path = path.replaceAll("7F20$","7FFF");
+
+        rr.mp.writeString(mAid);
+        rr.mp.writeInt(command);
+        rr.mp.writeInt(fileid);
+        rr.mp.writeString(path);
+        rr.mp.writeInt(p1);
+        rr.mp.writeInt(p2);
+        rr.mp.writeInt(p3);
+        rr.mp.writeString(data);
+        rr.mp.writeString(pin2);
+
+        if (RILJ_LOGD) riljLog(rr.serialString() + "> VCRIL iccIO: "
+                    + " aid: " + mAid + " "
+                    + requestToString(rr.mRequest)
+                    + " 0x" + Integer.toHexString(command)
+                    + " 0x" + Integer.toHexString(fileid) + " "
+                    + " path: " + path + ","
+                    + p1 + "," + p2 + "," + p3);
+
+        send(rr);
+    }
+
+    @Override
     protected Object
     responseIccCardStatus(Parcel p) {
-        IccCardApplication ca;
+        IccCardApplicationStatus ca;
 
         IccCardStatus status = new IccCardStatus();
         status.setCardState(p.readInt());
         status.setUniversalPinState(p.readInt());
-        int gsmUmtsSubscriptionAppCount = p.readInt();
-        for (int i = 0; i < gsmUmtsSubscriptionAppCount; i++) {
-            if (i == 0)
-                status.setGsmUmtsSubscriptionAppIndex(p.readInt());
-            else
-                p.readInt();
-        }
+	p.readInt();
+        status.mGsmUmtsSubscriptionAppIndex = p.readInt();
+        status.mCdmaSubscriptionAppIndex = p.readInt();
 
-        int cdmaSubscriptionAppCount = p.readInt();
-        for (int i = 0; i < cdmaSubscriptionAppCount; i++) {
-            if (i == 0)
-                status.setCdmaSubscriptionAppIndex(p.readInt());
-            else
-                p.readInt();
-        }
         int numApplications = p.readInt();
 
         // limit to maximum allowed applications
         if (numApplications > IccCardStatus.CARD_MAX_APPS) {
             numApplications = IccCardStatus.CARD_MAX_APPS;
         }
-        status.setNumApplications(numApplications);
+        status.mApplications = new IccCardApplicationStatus[numApplications];
 
-        for (int i = 0 ; i < numApplications ; i++) {
-            ca = new IccCardApplication();
-            ca.app_type       = ca.AppTypeFromRILInt(p.readInt());
-            ca.app_state      = ca.AppStateFromRILInt(p.readInt());
-            ca.perso_substate = ca.PersoSubstateFromRILInt(p.readInt());
-            ca.aid            = p.readString();
-            ca.app_label      = p.readString();
-            ca.pin1_replaced  = p.readInt();
-            ca.pin1           = ca.PinStateFromRILInt(p.readInt());
-            ca.pin2           = ca.PinStateFromRILInt(p.readInt());
-            status.addApplication(ca);
-            p.readInt();
-            p.readInt();
-            p.readInt();
-            p.readInt();
+        for (int i = 0; i < numApplications; i++) {
+            ca = new IccCardApplicationStatus();
+            ca.app_type 	= ca.AppTypeFromRILInt(p.readInt());
+            ca.app_state 	= ca.AppStateFromRILInt(p.readInt());
+            ca.perso_substate 	= ca.PersoSubstateFromRILInt(p.readInt());
+            ca.aid 		= p.readString();
+            ca.app_label 	= p.readString();
+            ca.pin1_replaced 	= p.readInt();
+            ca.pin1 		= ca.PinStateFromRILInt(p.readInt());
+            ca.pin2 		= ca.PinStateFromRILInt(p.readInt());
+            status.mApplications[i] = ca;
+            p.readInt(); //remaining_count_pin1
+            p.readInt(); //remaining_count_puk1
+            p.readInt(); //remaining_count_pin2
+            p.readInt(); //remaining_count_puk2
         }
 
         int appIndex = -1;
-        if (mPhoneType == RILConstants.CDMA_PHONE) {
-            appIndex = status.getCdmaSubscriptionAppIndex();
-            Log.d(LOG_TAG, "VCRIL:This is a CDMA PHONE " + appIndex);
+        if (mPhoneType == RILConstants.CDMA_PHONE && !skipCdmaSubcription) {
+            appIndex = status.mCdmaSubscriptionAppIndex;
+            Log.d(LOG_TAG, "This is a CDMA PHONE " + appIndex);
         } else {
-            appIndex = status.getGsmUmtsSubscriptionAppIndex();
-            Log.d(LOG_TAG, "VCRIL:This is a GSM PHONE " + appIndex);
+            appIndex = status.mGsmUmtsSubscriptionAppIndex;
+            Log.d(LOG_TAG, "This is a GSM PHONE " + appIndex);
         }
 
-        IccCardApplication application = status.getApplication(appIndex);
-        mAid = application.aid;
-        mPinState = (application.pin1 == IccCardStatus.PinState.PINSTATE_DISABLED || 
-                     application.pin1 == IccCardStatus.PinState.PINSTATE_UNKNOWN) ? 0 : 1;
+        if (numApplications > 0) {
+            IccCardApplicationStatus application = status.mApplications[appIndex];
+            mAid = application.aid;
+            mUSIM = application.app_type
+                      == IccCardApplicationStatus.AppType.APPTYPE_USIM;
+            mSetPreferredNetworkType = mPreferredNetworkType;
+
+            if (TextUtils.isEmpty(mAid))
+               mAid = "";
+            Log.d(LOG_TAG, "mAid " + mAid);
+        }
 
         return status;
+    }
+
+    @Override
+    public void
+    setupDataCall(String radioTechnology, String profile, String apn,
+            String user, String password, String authType, String protocol,
+            Message result) {
+        RILRequest rr
+                = RILRequest.obtain(RIL_REQUEST_SETUP_DATA_CALL, result);
+	riljLog("SetupDataCall entry:");
+ 
+        rr.mp.writeInt(7);
+        
+        rr.mp.writeString(radioTechnology);
+        rr.mp.writeString(profile);
+        rr.mp.writeString(apn);
+        rr.mp.writeString(user);
+        rr.mp.writeString(password);
+        rr.mp.writeString(authType);
+        rr.mp.writeString(protocol);
+
+        if (RILJ_LOGD) riljLog(rr.serialString() + "VCRIL > "
+                + requestToString(rr.mRequest) + " RTech:" + radioTechnology + " Profl:"
+                + profile + " Apn:" + apn + " User:" + user + " Pass:"
+                + password + " Auth:" + authType + " Proto:" + protocol);
+
+        send(rr);
     }
 
     @Override
@@ -497,14 +449,14 @@ public class victorQualcommRIL extends RIL implements CommandsInterface {
         RILRequest rr = RILRequest.obtain(
                 RILConstants.RIL_REQUEST_GET_NEIGHBORING_CELL_IDS, response);
 
-        if (RILJ_LOGD) riljLog(rr.serialString() + "VCRIL > " + requestToString(rr.mRequest));
+        if (RILJ_LOGD) riljLog(rr.serialString() + "> " + requestToString(rr.mRequest));
 
         send(rr);
     }
 
     @Override
     public void setCurrentPreferredNetworkType() {
-        if (RILJ_LOGD) riljLog("VCRIL setCurrentPreferredNetworkType: " + mSetPreferredNetworkType);
+        if (RILJ_LOGD) riljLog("setCurrentPreferredNetworkType: " + mSetPreferredNetworkType);
         setPreferredNetworkType(mSetPreferredNetworkType, null);
     }
 
@@ -543,12 +495,8 @@ public class victorQualcommRIL extends RIL implements CommandsInterface {
                 response[i] = -1;
                 noLte = true;
             }
-            if (i == 8 && !(noLte || oldRil)) {
-                response[i] *= -1;
-            }
         }
-
-        return response;
+        return new SignalStrength(response[0], response[1], response[2], response[3], response[4], response[5], response[6], response[7],response[8], response[9], response[10], response[11], true);
     }
 
     @Override
@@ -581,7 +529,7 @@ public class victorQualcommRIL extends RIL implements CommandsInterface {
         rr = findAndRemoveRequestFromList(serial);
 
         if (rr == null) {
-            Log.w(LOG_TAG, "VCRIL Unexpected solicited response! sn: "
+            Log.w(LOG_TAG, "Unexpected solicited response! sn: "
                             + serial + " error: " + error);
             return;
         }
@@ -713,14 +661,14 @@ public class victorQualcommRIL extends RIL implements CommandsInterface {
             case RIL_REQUEST_VOICE_RADIO_TECH: ret = responseInts(p); break;
 
             default:
-                throw new RuntimeException("VCRIL Unrecognized solicited response: " + rr.mRequest);
+                throw new RuntimeException("Unrecognized solicited response: " + rr.mRequest);
             //break;
             }} catch (Throwable tr) {
                 // Exceptions here usually mean invalid RIL responses
 
                 Log.w(LOG_TAG, rr.serialString() + "< "
                         + requestToString(rr.mRequest)
-                        + " VCRIL exception, possible invalid RIL response", tr);
+                        + " exception, possible invalid RIL response", tr);
 
                 if (rr.mResult != null) {
                     AsyncResult.forMessage(rr.mResult, null, tr);
@@ -737,7 +685,7 @@ public class victorQualcommRIL extends RIL implements CommandsInterface {
             return;
         }
 
-        if (RILJ_LOGD) riljLog(rr.serialString() + "VCRIL < " + requestToString(rr.mRequest)
+        if (RILJ_LOGD) riljLog(rr.serialString() + "< " + requestToString(rr.mRequest)
             + " " + retToString(rr.mRequest, ret));
 
         if (rr.mResult != null) {
@@ -771,7 +719,7 @@ public class victorQualcommRIL extends RIL implements CommandsInterface {
         switch(response) {
             //case RIL_UNSOL_RESPONSE_RADIO_STATE_CHANGED: ret =  responseVoid(p); break;
             case RIL_UNSOL_RIL_CONNECTED: ret = responseInts(p); break;
-            case RIL_UNSOL_VOICE_RADIO_TECH_CHANGED: ret = responseVoid(p); break;
+            case 1035: ret = responseVoid(p); break; // RIL_UNSOL_VOICE_RADIO_TECH_CHANGED
             case 1036: ret = responseVoid(p); break; // RIL_UNSOL_RESPONSE_IMS_NETWORK_STATE_CHANGED
             case 1037: ret = responseVoid(p); break; // RIL_UNSOL_EXIT_EMERGENCY_CALLBACK_MODE
             case 1038: ret = responseVoid(p); break; // RIL_UNSOL_DATA_NETWORK_STATE_CHANGED
@@ -795,7 +743,7 @@ public class victorQualcommRIL extends RIL implements CommandsInterface {
 
                 notifyRegistrantsRilConnectionChanged(((int[])ret)[0]);
                 break;
-            case RIL_UNSOL_VOICE_RADIO_TECH_CHANGED:
+            case 1035:
             case 1036:
                 break;
             case 1037: // RIL_UNSOL_EXIT_EMERGENCY_CALLBACK_MODE
@@ -808,19 +756,6 @@ public class victorQualcommRIL extends RIL implements CommandsInterface {
                 break;
             case 1038:
                 break;
-        }
-    }
-
-    /**
-     * Notify all registrants that the ril has connected or disconnected.
-     *
-     * @param rilVer is the version of the ril or -1 if disconnected.
-     */
-    private void notifyRegistrantsRilConnectionChanged(int rilVer) {
-        mRilVersion = rilVer;
-        if (mRilConnectedRegistrants != null) {
-            mRilConnectedRegistrants.notifyRegistrants(
-                                new AsyncResult (null, new Integer(rilVer), null));
         }
     }
 
@@ -857,7 +792,7 @@ public class victorQualcommRIL extends RIL implements CommandsInterface {
                 radioState = CommandsInterface.RadioState.RADIO_ON;
                 break;
             default:
-                throw new RuntimeException("VCRIL Unrecognized RIL_RadioState: " + stateCode);
+                throw new RuntimeException("Unrecognized RIL_RadioState: " + stateCode);
         }
 
         setRadioState (radioState);
@@ -881,17 +816,17 @@ public class victorQualcommRIL extends RIL implements CommandsInterface {
             switch (paramMessage.what) {
                 case EVENT_RADIO_ON:
                     mRadioOn = true;
-                    Log.d(LOG_TAG, "VCRIL Radio on -> Forcing sim status update");
+                    Log.d(LOG_TAG, "Radio on -> Forcing sim status update");
                     sendMessage(obtainMessage(EVENT_ICC_STATUS_CHANGED));
                     break;
                 case EVENT_GET_ICC_STATUS_DONE:
                     AsyncResult asyncResult = (AsyncResult) paramMessage.obj;
                     if (asyncResult.exception != null) {
-                        Log.e (LOG_TAG, "VCRIL IccCardStatusDone shouldn't return exceptions!", asyncResult.exception);
+                        Log.e (LOG_TAG, "IccCardStatusDone shouldn't return exceptions!", asyncResult.exception);
                         break;
                     }
                     IccCardStatus status = (IccCardStatus) asyncResult.result;
-                    if (status.getNumApplications() == 0) {
+                    if (status.mApplications == null || status.mApplications.length == 0) {
                         if (!mRil.getRadioState().isOn()) {
                             break;
                         }
@@ -900,16 +835,16 @@ public class victorQualcommRIL extends RIL implements CommandsInterface {
                     } else {
                         int appIndex = -1;
                         if (mPhoneType == RILConstants.CDMA_PHONE && !skipCdmaSubcription) {
-                            appIndex = status.getCdmaSubscriptionAppIndex();
-                            Log.d(LOG_TAG, "VCRIL This is a CDMA PHONE " + appIndex);
+                            appIndex = status.mCdmaSubscriptionAppIndex;
+                            Log.d(LOG_TAG, "This is a CDMA PHONE " + appIndex);
                         } else {
-                            appIndex = status.getGsmUmtsSubscriptionAppIndex();
-                            Log.d(LOG_TAG, "VCRIL This is a GSM PHONE " + appIndex);
+                            appIndex = status.mGsmUmtsSubscriptionAppIndex;
+                            Log.d(LOG_TAG, "This is a GSM PHONE " + appIndex);
                         }
 
-                        IccCardApplication application = status.getApplication(appIndex);
-                        IccCardApplication.AppState app_state = application.app_state;
-                        IccCardApplication.AppType app_type = application.app_type;
+                        IccCardApplicationStatus application = status.mApplications[appIndex];
+                        IccCardApplicationStatus.AppState app_state = application.app_state;
+                        IccCardApplicationStatus.AppType app_type = application.app_type;
 
                         switch (app_state) {
                             case APPSTATE_PIN:
@@ -921,7 +856,7 @@ public class victorQualcommRIL extends RIL implements CommandsInterface {
                                         mRil.setRadioState(CommandsInterface.RadioState.RADIO_ON);
                                         break;
                                     default:
-                                        Log.e(LOG_TAG, "VCRIL Currently we don't handle SIMs of type: " + app_type);
+                                        Log.e(LOG_TAG, "Currently we don't handle SIMs of type: " + app_type);
                                         return;
                                 }
                                 break;
@@ -933,7 +868,7 @@ public class victorQualcommRIL extends RIL implements CommandsInterface {
                                         mRil.setRadioState(CommandsInterface.RadioState.RADIO_ON);
                                         break;
                                     default:
-                                        Log.e(LOG_TAG, "VCRIL Currently we don't handle SIMs of type: " + app_type);
+                                        Log.e(LOG_TAG, "Currently we don't handle SIMs of type: " + app_type);
                                         return;
                                 }
                                 break;
@@ -944,17 +879,17 @@ public class victorQualcommRIL extends RIL implements CommandsInterface {
                     break;
                 case EVENT_ICC_STATUS_CHANGED:
                     if (mRadioOn) {
-                        Log.d(LOG_TAG, "VCRIL Received EVENT_ICC_STATUS_CHANGED, calling getIccCardStatus");
+                        Log.d(LOG_TAG, "Received EVENT_ICC_STATUS_CHANGED, calling getIccCardStatus");
                          mRil.getIccCardStatus(obtainMessage(EVENT_GET_ICC_STATUS_DONE, paramMessage.obj));
                     } else {
-                         Log.d(LOG_TAG, "VCRIL Received EVENT_ICC_STATUS_CHANGED while radio is not ON. Ignoring");
+                         Log.d(LOG_TAG, "Received EVENT_ICC_STATUS_CHANGED while radio is not ON. Ignoring");
                     }
                     break;
                 case EVENT_RADIO_OFF_OR_UNAVAILABLE:
                     mRadioOn = false;
                     // disposeCards(); // to be verified;
                 default:
-                    Log.e(LOG_TAG, " VCRIL Unknown Event " + paramMessage.what);
+                    Log.e(LOG_TAG, " Unknown Event " + paramMessage.what);
                     break;
             }
         }
@@ -972,7 +907,7 @@ public class victorQualcommRIL extends RIL implements CommandsInterface {
     supplyNetworkDepersonalization(String netpin, Message result) {
         RILRequest rr = RILRequest.obtain(RIL_REQUEST_ENTER_NETWORK_DEPERSONALIZATION, result);
 
-        if (RILJ_LOGD) riljLog(rr.serialString() + "VCRIL > " + requestToString(rr.mRequest));
+        if (RILJ_LOGD) riljLog(rr.serialString() + "> " + requestToString(rr.mRequest));
 
         rr.mp.writeInt(3);
         rr.mp.writeString(netpin);
@@ -987,7 +922,7 @@ public class victorQualcommRIL extends RIL implements CommandsInterface {
                 = RILRequest.obtain(RIL_REQUEST_SET_NETWORK_SELECTION_MANUAL,
                                     response);
 
-        if (RILJ_LOGD) riljLog(rr.serialString() + "VCRIL > " + requestToString(rr.mRequest)
+        if (RILJ_LOGD) riljLog(rr.serialString() + "> " + requestToString(rr.mRequest)
                     + " " + operatorNumeric);
 
         rr.mp.writeInt(2);

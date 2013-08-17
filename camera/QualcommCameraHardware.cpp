@@ -679,8 +679,8 @@ static camera_antibanding_type camera_get_location(void) {
 #endif
 
 static const str_map scenemode[] = {
-    { CameraParameters::SCENE_MODE_OFF,            CAMERA_BESTSHOT_OFF },
-    { CameraParameters::SCENE_MODE_AUTO,           CAMERA_BESTSHOT_AUTO },
+    { CameraParameters::SCENE_MODE_AUTO,           CAMERA_BESTSHOT_OFF },
+    { CameraParameters::SCENE_MODE_ASD,            CAMERA_BESTSHOT_AUTO },
     { CameraParameters::SCENE_MODE_ACTION,         CAMERA_BESTSHOT_ACTION },
     { CameraParameters::SCENE_MODE_PORTRAIT,       CAMERA_BESTSHOT_PORTRAIT },
     { CameraParameters::SCENE_MODE_LANDSCAPE,      CAMERA_BESTSHOT_LANDSCAPE },
@@ -1032,7 +1032,7 @@ static struct msm_frame * cam_frame_get_video()
            p = (struct msm_frame *)node->f;
            free (node);
        }
-       ALOGV("cam_frame_get_video... out = %x\n", p->buffer);
+       //ALOGV("cam_frame_get_video... out = %d\n", p->buffer);
     }
     return p;
 }
@@ -1152,7 +1152,7 @@ static void cam_frame_post_video (struct msm_frame *p)
     pthread_mutex_unlock(&(g_busy_frame_queue.mut));
     pthread_cond_signal(&(g_busy_frame_queue.wait));
 
-    ALOGV("cam_frame_post_video... out = %x\n", p->buffer);
+    //ALOGV("cam_frame_post_video... out = %d\n", p->buffer);
 
     return;
 }
@@ -1993,7 +1993,7 @@ void QualcommCameraHardware::initDefaultParameters()
     mParameters.set(CameraParameters::KEY_SUPPORTED_SKIN_TONE_ENHANCEMENT_MODES,
                     skinToneEnhancement_values);
     mParameters.set(CameraParameters::KEY_SCENE_MODE,
-                    CameraParameters::SCENE_MODE_OFF);
+                    CameraParameters::SCENE_MODE_AUTO);
     mParameters.set("strtextures", "OFF");
 
     mParameters.set(CameraParameters::KEY_SUPPORTED_SCENE_MODES,
@@ -3336,7 +3336,7 @@ void QualcommCameraHardware::runHFRThread(void *data)
                         MSM_PMEM_THUMBNAIL,
                         false, false);
                     if (munmap((void *)(mThumbnailMapped[cnt]),handle->size ) == -1) {
-                      ALOGE("StopPreview : Error un-mmapping the thumbnail buffer %d", index);
+                      ALOGE("StopPreview : Error un-mmapping the thumbnail buffer %s", index);
                     }
                     mThumbnailBuffer[cnt] = NULL;
                     mThumbnailMapped[cnt] = NULL;
@@ -3400,7 +3400,7 @@ void QualcommCameraHardware::runVideoThread(void *data)
         // Get the video frame to be encoded
         vframe = cam_frame_get_video ();
         pthread_mutex_unlock(&(g_busy_frame_queue.mut));
-        ALOGE("in video_thread : got video frame %x",vframe);
+        //ALOGE("in video_thread : got video frame %x",vframe);
 
         /*if (UNLIKELY(mDebugFps)) {
             debugShowVideoFPS();
@@ -4680,7 +4680,7 @@ void QualcommCameraHardware::deinitRaw()
                         MSM_PMEM_THUMBNAIL,
                         false, false);
                      if (munmap((void *)(mThumbnailMapped[cnt]),handle->size ) == -1) {
-                       ALOGE("deinitraw : Error un-mmapping the thumbnail buffer %d", index);
+                       //ALOGE("deinitraw : Error un-mmapping the thumbnail buffer %d", index);
                      }
                      mThumbnailBuffer[cnt] = NULL;
                      mThumbnailMapped[cnt] = NULL;
@@ -4741,6 +4741,7 @@ status_t QualcommCameraHardware::setPreviewWindow(preview_stream_ops_t* window)
 {
     status_t retVal = NO_ERROR;
 //    ALOGV(" %s: E ", __FUNCTION__);
+//	qui
     if( window == NULL) {
         ALOGW(" Setting NULL preview window ");
         /* Current preview window will be invalidated.
@@ -4766,7 +4767,7 @@ status_t QualcommCameraHardware::setPreviewWindow(preview_stream_ops_t* window)
 
 status_t QualcommCameraHardware::getBuffersAndStartPreview() {
     status_t retVal = NO_ERROR;
-	int stride;
+    int stride;
     ALOGV(" %s : E ", __FUNCTION__);
     mFrameThreadWaitLock.lock();
     while (mFrameThreadRunning) {
@@ -4776,14 +4777,12 @@ status_t QualcommCameraHardware::getBuffersAndStartPreview() {
     }
     mFrameThreadWaitLock.unlock();
 
-    if( mPreviewWindow!= NULL) {
+    if( mPreviewWindow != NULL) {
         ALOGV("%s: Calling native_window_set_buffer", __FUNCTION__);
-
         android_native_buffer_t *mPreviewBuffer;
         int32_t previewFormat;
         const char *str = mParameters.getPreviewFormat();
         int numMinUndequeuedBufs = 0;
-
         int err = mPreviewWindow->get_min_undequeued_buffer_count(mPreviewWindow,
 	    &numMinUndequeuedBufs);
 
@@ -4800,7 +4799,7 @@ status_t QualcommCameraHardware::getBuffersAndStartPreview() {
           previewFormat = HAL_PIXEL_FORMAT_YCrCb_420_SP;
         }
 
-	    retVal = mPreviewWindow->set_buffer_count(mPreviewWindow,
+	retVal = mPreviewWindow->set_buffer_count(mPreviewWindow,
 	                     mTotalPreviewBufferCount +
                                 (mZslEnable? (MAX_SNAPSHOT_BUFFERS-2) : numCapture) ); //1);
 
@@ -5496,7 +5495,7 @@ void QualcommCameraHardware::stopPreview()
                         MSM_PMEM_THUMBNAIL,
                         false, false);
                     if (munmap((void *)(mThumbnailMapped[cnt]),handle->size ) == -1) {
-                      ALOGE("StopPreview : Error un-mmapping the thumbnail buffer %d", index);
+                      //ALOGE("StopPreview : Error un-mmapping the thumbnail buffer %d", index);
                     }
                     mThumbnailMapped[cnt] = NULL;
                  }
@@ -9907,7 +9906,7 @@ extern "C" void HAL_getCameraInfo(int cameraId, struct CameraInfo* cameraInfo)
             }
 
             ALOGE("%s: modes supported = %d", __FUNCTION__, cameraInfo->mode);
-
+	    ALOGE("debug: return to caller: facing=%d orientation=%d", cameraInfo->facing, cameraInfo->orientation);
             return;
         }
     }
