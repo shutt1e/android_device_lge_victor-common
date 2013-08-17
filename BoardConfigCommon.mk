@@ -1,4 +1,3 @@
-
 USE_CAMERA_STUB := true
 TARGET_NO_BOOTLOADER := true
 
