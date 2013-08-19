@@ -62,7 +62,7 @@ WIFI_DRIVER_FW_PATH_P2P := "/system/etc/firmware/rtecdc-apsta.bin"
 WIFI_DRIVER_FW_PATH_PARAM := "/sys/module/wireless/parameters/firmware_path"
 WIFI_DRIVER_MODULE_NAME := "wireless"
 WIFI_DRIVER_MODULE_PATH := "/system/lib/modules/wireless.ko"
-WIFI_DRIVER_MODULE_ARG := "firmware_path=/etc/firmware/rtecdc.bin nvram_path=/etc/wl/nvram.txt config_path=/data/misc/wifi/config"
+WIFI_DRIVER_MODULE_ARG := "firmware_path=/system/etc/firmware/rtecdc.bin nvram_path=/etc/wl/nvram.txt config_path=/data/misc/wifi/config"
 WIFI_DRIVER_HAS_LGE_SOFTAP := true
 
 # Hdmi

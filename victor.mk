@@ -165,7 +165,7 @@ PRODUCT_PACKAGES += \
 PRODUCT_COPY_FILES += \
     device/lge/victor-common/recovery/rmt_storage/rmt_storage:/root/sbin/rmt_storage \
     device/lge/victor-common/misc/wallpaper:/root/sbin/wallpaper \
-    device/lge/victor-common/misc/initlogo.rle:root/initlogo.rle \
+    device/lge/victor-common/misc/initlogo.rle:root/initlogo.rle
 
 # Offmode charging
 PRODUCT_PACKAGES += \
