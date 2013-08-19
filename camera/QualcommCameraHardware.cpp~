@@ -4741,7 +4741,7 @@ status_t QualcommCameraHardware::setPreviewWindow(preview_stream_ops_t* window)
 {
     status_t retVal = NO_ERROR;
 //    ALOGV(" %s: E ", __FUNCTION__);
-//	qui
+//	
     if( window == NULL) {
         ALOGW(" Setting NULL preview window ");
         /* Current preview window will be invalidated.

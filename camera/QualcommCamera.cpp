@@ -316,11 +316,12 @@ extern "C" int get_camera_info(int camera_id, struct camera_info *info)
   struct CameraInfo camInfo;
     memset(&camInfo, -1, sizeof (struct CameraInfo));
     HAL_getCameraInfo(camera_id, &camInfo);
+    ALOGE("get_camera_info debug:facing=%d orientation:%d", camInfo.facing, camInfo.orientation);	
     if (camInfo.facing >= 0) {
       rc = 0;
       info->facing = camInfo.facing;
       info->orientation = camInfo.orientation;
-      ALOGE("debug: facing=%d orientation=%d", camInfo.facing, camInfo.orientation);	
+      ALOGE("debug: facing=%d orientation=%d", info->facing, info->orientation);	
     }
   }
    ALOGV("Q%s: X", __func__);
@@ -338,7 +339,7 @@ extern "C" int  camera_device_open(
     camera_device *device = NULL;
     if(module && id && hw_device) {
       int cameraId = atoi(id);
-
+      ALOGE("openCamera: cameraId=%d", cameraId);
       if (!strcmp(module->name, camera_common.name)) {
         device =
           (camera_device *)malloc(sizeof (struct camera_device));
@@ -633,7 +634,7 @@ int set_parameters(struct camera_device * device, const char *parms)
 
 char* get_parameters(struct camera_device * device)
 {
-  ALOGE("Q%s: E", __func__);
+  //ALOGE("Q%s: E", __func__);
   char* rc = NULL;
 
   CameraParameters param;
@@ -645,10 +646,10 @@ char* get_parameters(struct camera_device * device)
     if (!rc) {
       ALOGE("get_parameters: NULL string");
     } else {
-      //ALOGE("get_parameters: %s", rc);
+      //ALOGE("get_parameters debug: %s", rc);
     }
   }
-  ALOGE("get_parameters X");
+  //ALOGE("get_parameters X");
   return rc;
 }
 
