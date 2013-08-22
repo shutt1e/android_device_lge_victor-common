@@ -67,6 +67,27 @@ public class victorQualcommRIL extends RIL implements CommandsInterface {
     }
 
     @Override public void
+    supplyIccPin(String pin, Message result) {
+        supplyIccPinForApp(pin, mAid, result);
+    }
+
+    @Override
+    public void
+    supplyIccPinForApp(String pin, String mAid, Message result) {
+        //Note: This RIL request has not been renamed to ICC,
+        //       but this request is also valid for SIM and RUIM
+        RILRequest rr = RILRequest.obtain(RIL_REQUEST_ENTER_SIM_PIN, result);
+
+
+        if (RILJ_LOGD) riljLog(rr.serialString() + "VCRIL SupplyPin > " + requestToString(rr.mRequest));
+
+        rr.mp.writeString(mAid);
+        rr.mp.writeString(pin);
+
+        send(rr);
+    }
+
+    @Override public void
     supplyIccPin2(String pin, Message result) {
         supplyIccPin2ForApp(pin, mAid, result);
     }
@@ -82,6 +103,28 @@ public class victorQualcommRIL extends RIL implements CommandsInterface {
 
         rr.mp.writeString(mAid);
         rr.mp.writeString(pin);
+
+        send(rr);
+    }
+
+    @Override
+    public void
+    changeIccPin(String oldPin, String newPin, Message result) {
+	changeIccPinForApp(oldPin, newPin, mAid, result);
+    }
+
+    @Override
+    public void
+    changeIccPinForApp(String oldPin, String newPin, String mAid, Message result) {
+        //Note: This RIL request has not been renamed to ICC,
+        //       but this request is also valid for SIM and RUIM
+        RILRequest rr = RILRequest.obtain(RIL_REQUEST_CHANGE_SIM_PIN, result);
+
+        if (RILJ_LOGD) riljLog(rr.serialString() + "VCRIL ChangePin > " + requestToString(rr.mRequest));
+
+        rr.mp.writeString(mAid);
+        rr.mp.writeString(oldPin);
+        rr.mp.writeString(newPin);
 
         send(rr);
     }
@@ -288,9 +331,10 @@ public class victorQualcommRIL extends RIL implements CommandsInterface {
         IccCardStatus status = new IccCardStatus();
         status.setCardState(p.readInt());
         status.setUniversalPinState(p.readInt());
-	p.readInt();
+        p.readInt();
         status.mGsmUmtsSubscriptionAppIndex = p.readInt();
         status.mCdmaSubscriptionAppIndex = p.readInt();
+        // status.mImsSubscriptionAppIndex = p.readInt();
 
         int numApplications = p.readInt();
 
@@ -302,21 +346,22 @@ public class victorQualcommRIL extends RIL implements CommandsInterface {
 
         for (int i = 0; i < numApplications; i++) {
             ca = new IccCardApplicationStatus();
-            ca.app_type 	= ca.AppTypeFromRILInt(p.readInt());
-            ca.app_state 	= ca.AppStateFromRILInt(p.readInt());
-            ca.perso_substate 	= ca.PersoSubstateFromRILInt(p.readInt());
-            ca.aid 		= p.readString();
-            ca.app_label 	= p.readString();
-            ca.pin1_replaced 	= p.readInt();
-            ca.pin1 		= ca.PinStateFromRILInt(p.readInt());
-            ca.pin2 		= ca.PinStateFromRILInt(p.readInt());
+            ca.app_type = ca.AppTypeFromRILInt(p.readInt());
+            ca.app_state = ca.AppStateFromRILInt(p.readInt());
+            ca.perso_substate = ca.PersoSubstateFromRILInt(p.readInt());
+            ca.aid = p.readString();
+            ca.app_label = p.readString();
+            ca.pin1_replaced = p.readInt();
+            ca.pin1 = ca.PinStateFromRILInt(p.readInt());
+            ca.pin2 = ca.PinStateFromRILInt(p.readInt());
             status.mApplications[i] = ca;
-            p.readInt(); //remaining_count_pin1
-            p.readInt(); //remaining_count_puk1
-            p.readInt(); //remaining_count_pin2
-            p.readInt(); //remaining_count_puk2
+            if (!needsOldRilFeature("skippinpukcount")) {
+                p.readInt(); //remaining_count_pin1
+                p.readInt(); //remaining_count_puk1
+                p.readInt(); //remaining_count_pin2
+                p.readInt(); //remaining_count_puk2
+            }
         }
-
         int appIndex = -1;
         if (mPhoneType == RILConstants.CDMA_PHONE && !skipCdmaSubcription) {
             appIndex = status.mCdmaSubscriptionAppIndex;
@@ -329,15 +374,16 @@ public class victorQualcommRIL extends RIL implements CommandsInterface {
         if (numApplications > 0) {
             IccCardApplicationStatus application = status.mApplications[appIndex];
             mAid = application.aid;
-            mUSIM = application.app_type
-                      == IccCardApplicationStatus.AppType.APPTYPE_USIM;
-            mSetPreferredNetworkType = mPreferredNetworkType;
+	    mPinState = (application.pin1 == IccCardStatus.PinState.PINSTATE_DISABLED || 
+                     application.pin1 == IccCardStatus.PinState.PINSTATE_UNKNOWN) ? 0 : 1;
+            //mUSIM = application.app_type
+            //          == IccCardApplicationStatus.AppType.APPTYPE_USIM;
+            //mSetPreferredNetworkType = mPreferredNetworkType;
 
-            if (TextUtils.isEmpty(mAid))
-               mAid = "";
-            Log.d(LOG_TAG, "mAid " + mAid);
+            //if (TextUtils.isEmpty(mAid))
+            //   mAid = "";
+            //Log.d(LOG_TAG, "VCRIL :mAid " + mAid);
         }
-
         return status;
     }
 

@@ -39,7 +39,7 @@ static pthread_mutex_t g_lock = PTHREAD_MUTEX_INITIALIZER;
 static int g_haveTrackballLight = 0;
 static struct light_state_t g_notification;
 static struct light_state_t g_battery;
-static int g_backlight = 255;
+static int g_backlight = 200; //was 255
 static int g_trackball = -1;
 static int g_buttons = 0;
 static int g_attention = 0;
@@ -160,7 +160,7 @@ set_light_backlight(struct light_device_t* dev,
 {
     int err = 0;
     int brightness = rgb_to_brightness(state);
-    ALOGE("liblights brightness=%d", brightness);
+    //ALOGE("liblights brightness=%d", brightness);
     pthread_mutex_lock(&g_lock);
     g_backlight = brightness;
     err = write_int(LCD_FILE, brightness);

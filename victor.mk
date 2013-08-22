@@ -155,7 +155,9 @@ PRODUCT_COPY_FILES += \
 
 # BT/Wifi
 PRODUCT_COPY_FILES += \
-    device/lge/victor-common/prebuilt/init.qcom.bt.sh:system/bin/init.qcom.bt.sh
+    device/lge/victor-common/prebuilt/init.qcom.bt.sh:system/bin/init.qcom.bt.sh \
+    device/lge/victor-common/bluetooth/bt_vendor.conf:system/etc/bluetooth/bt_vendor.conf
+
 
 PRODUCT_PACKAGES += \
     hwaddrs \
