@@ -14,13 +14,11 @@
 /dev/msm_mvs              0666   root       root
 /dev/lge_amp              0660   system     system
 /dev/ion		  0664	 system	    system
-/dev/broadcast0           0660   broadcast  root
-/dev/tsif0                0660   broadcast  root
+#/dev/broadcast0           0660   broadcast  root
+#/dev/tsif0                0660   broadcast  root
 /dev/oncrpc/*             0660   radio      system
-
 # the DIAG device node is world writable/readable.
 /dev/diag                 0666   root       root
-
 /dev/rfkill               0666   wifi       wifi
 /dev/ttyHS0               0660   bluetooth  bluetooth
 /dev/graphics/*           0666   system     graphics
@@ -31,7 +29,7 @@
 /dev/msm_camera/*         0660   system     camera
 # LGE_CHANGE_S taeho.youn@lge.com		2011.3.3
 /dev/msm_audio_misc	  0660	 system	    audio
-/dev/radio0               0644   fm_radio   fm_radio
+/dev/radio0               0777   system     radio
 /dev/i2c-2                0664   root       system
 /dev/i2c-4                0664   root       system
 /dev/msm_pcm_in*          0660   system     audio

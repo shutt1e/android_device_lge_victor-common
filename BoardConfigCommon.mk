@@ -45,6 +45,7 @@ BOARD_USES_QCOM_AUDIO_RESETALL := true
 # Bluetooth
 BOARD_HAVE_BLUETOOTH := true
 BOARD_HAVE_BLUETOOTH_BCM := true
+//BLUETOOTH_HCI_USE_MCT := true
 BOARD_BLUEDROID_VENDOR_CONF := device/lge/victor-common/bluetooth/vnd_msm7x30.txt
 BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/lge/victor-common/bluetooth/include
 

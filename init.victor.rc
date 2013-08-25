@@ -159,7 +159,7 @@ service bugreport /system/bin/bugmailer.sh -v
 
 service hciattach /system/bin/init.qcom.bt.sh
     class main
-    #user bluetooth
+    user bluetooth
     group bluetooth net_bt_admin
     disabled
 

@@ -38,7 +38,7 @@ import com.android.internal.telephony.cdma.CdmaInformationRecords;
 import java.util.ArrayList;
 
 /**
- * Custom Qualcomm No SimReady RIL using the latest Uicc stack
+ * Custom Qualcomm No SimReady RIL using the latest Uicc stack - Patched for LGE730 by shutt1e
  *
  * {@hide}
  */
