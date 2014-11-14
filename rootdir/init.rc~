@@ -99,6 +99,8 @@ loglevel 3
     # Fuse public mount points.
     mkdir /mnt/fuse 0700 root system
     mount tmpfs tmpfs /mnt/fuse mode=0775,gid=1000
+# zram single page at time
+    write /proc/sys/vm/page-cluster 0
 
     write /proc/sys/kernel/panic_on_oops 1
     write /proc/sys/kernel/hung_task_timeout_secs 0
@@ -171,22 +173,25 @@ on fs
 on emmc-fs
 
 # setting exit without sleeping fn in arch_idle function because of booting issue
-    wait /dev/block/mmcblk0p15
-    mount ext4 /dev/block/mmcblk0p15 /system ro data=ordered,barrier=1
+#    wait /dev/block/mmcblk0p15
+#    mount ext4 /dev/block/mmcblk0p15 /system ro data=ordered,barrier=1
 
-    wait /dev/block/mmcblk0p16
-    exec /system/bin/e2fsck -p /dev/block/mmcblk0p16
-    exec /system/bin/tune2fs -u system -m 5 /dev/block/mmcblk0p16
-    mount ext4 /dev/block/mmcblk0p16 /data nosuid nodev noatime barrier=1,data=ordered,noauto_da_alloc,errors=continue
+#    wait /dev/block/mmcblk0p16
+#    exec /system/bin/e2fsck -p /dev/block/mmcblk0p16
+#    exec /system/bin/tune2fs -u system -m 5 /dev/block/mmcblk0p16
+#    mount ext4 /dev/block/mmcblk0p16 /data nosuid nodev noatime barrier=1,data=ordered,noauto_da_alloc,errors=continue
 
-    wait /dev/block/mmcblk0p18
-    exec /system/bin/e2fsck -y /dev/block/mmcblk0p18
-    mount ext4 /dev/block/mmcblk0p18 /cache nosuid nodev data=ordered,barrier=1
+#    wait /dev/block/mmcblk0p18
+#    exec /system/bin/e2fsck -y /dev/block/mmcblk0p18
+#    mount ext4 /dev/block/mmcblk0p18 /cache nosuid nodev data=ordered,barrier=1
 
 ## ANDY_PORTING LGDRM [lg-drm@lge.com 100401]
     mkdir /lgdrm 0771 lgdrm lgdrm_acc
-    wait /dev/block/mmcblk0p20
-    mount ext4 /dev/block/mmcblk0p20 /lgdrm nosuid nodev data=ordered
+    mkdir /multimedia 0770 media system
+    mount_all /fstab.victor
+    swapon_all /fstab.victor
+#    wait /dev/block/mmcblk0p20
+#    mount ext4 /dev/block/mmcblk0p20 /lgdrm nosuid nodev data=ordered
     chown lgdrm lgdrm_acc /lgdrm
     chmod 0771 /lgdrm
 
@@ -203,11 +208,11 @@ on emmc-fs
     mkdir /data/lgdrm 0770 lgdrm lgdrm_acc
 
 ## MULTIMEDIA DIVX
-    mkdir /multimedia 0770 media system
-    wait /dev/block/mmcblk0p21
-    mount ext4 /dev/block/mmcblk0p21 /multimedia nosuid nodev data=ordered
-    chown media system /multimedia
-    chmod 0770 /multimedia
+#    mkdir /multimedia 0770 media system
+#    wait /dev/block/mmcblk0p21
+#    mount ext4 /dev/block/mmcblk0p21 /multimedia nosuid nodev data=ordered
+#    chown media system /multimedia
+#    chmod 0770 /multimedia
 ## MULTIMEDIA_DIVX_END
 
 # Nextreaming - DIVX_DRM
@@ -509,7 +514,7 @@ on property:sys.usb.config=accessory
     write /sys/class/android-usb/android0/bDeviceProtocol 0
     write /sys/class/android_usb/android0/functions $sys.usb.config
     write /sys/class/android_usb/android0/enable 1
-    setprop sys.usb.state $sys.usb.config
+    setprop sys.usb.state ${sys.usb.config}
 
 # USB accessory configuration, with adb
 on property:sys.usb.config=accessory,adb
@@ -522,12 +527,12 @@ on property:sys.usb.config=accessory,adb
     write /sys/class/android_usb/android0/functions $sys.usb.config
     write /sys/class/android_usb/android0/enable 1
     start adbd
-    setprop sys.usb.state $sys.usb.config
+    setprop sys.usb.state ${sys.usb.config}
 
 # Used to set USB configuration at boot and to switch the configuration
 # when changing the default configuration
 on property:persist.sys.usb.config=*
-    setprop sys.usb.config $persist.sys.usb.config
+    setprop sys.usb.config ${persist.sys.usb.config}
 
 ## Daemon processes to be run by init.
 ##

@@ -37,6 +37,7 @@
          config_hardware_automatic_brightness_available is not set, so we will use software implementation -->
     <bool name="config_automatic_brightness_available">false</bool>
 
+
     <!-- Array of light sensor LUX values to define our levels for auto backlight brightness support.
          The N entries of this array define N + 1 zones as follows:
 
@@ -82,9 +83,6 @@
         <item>0</item>
         <item>0</item>
     </integer-array>
-
-    <!-- Minimum screen brightness allowed by the power manager. -->
-    <integer name="config_screenBrightnessDim">30</integer>
 
     <!-- Display low battery warning when battery level dips to this value -->
     <integer name="config_lowBatteryWarningLevel">10</integer>
@@ -165,5 +163,6 @@
         <item>15</item>
     </integer-array>
 
+    <!-- Home,Back,Menu this is 7 -->
     <integer name="config_deviceHardwareKeys">7</integer>
 </resources>

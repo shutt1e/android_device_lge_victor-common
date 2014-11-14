@@ -57,7 +57,7 @@ PRODUCT_COPY_FILES += \
     $(COMMON_PATH)/rootdir/sbin/rmt_storage:root/sbin/rmt_storage \
     $(COMMON_PATH)/rootdir/sbin/chargerlogo:root/sbin/chargerlogo \
     $(COMMON_PATH)/rootdir/sbin/postrecoveryboot.sh:root/sbin/postrecoveryboot.sh \
-#    $(COMMON_PATH)/rootdir/system/bin/prep_recovery.sh:system/bin/prep_recovery.sh \
+    $(COMMON_PATH)/rootdir/system/bin/prep_recovery.sh:system/bin/prep_recovery.sh \
     $(COMMON_PATH)/rootdir/init.recovery.victor.rc:root/init.recovery.victor.rc \
     $(COMMON_PATH)/rootdir/init.lge.usb.sh:root/init.lge.usb.sh \
     $(COMMON_PATH)/rootdir/init.lge.hidden_reset.sh:root/init.lge.hidden_reset.sh
@@ -100,8 +100,8 @@ PRODUCT_COPY_FILES += \
     $(COMMON_PATH)/rootdir/system/usr/keylayout/7k_handset.kl:system/usr/keylayout/7k_handset.kl
 
 # Recovery hack needed because reboot recovery hang
-PRODUCT_COPY_FILES += \
-    $(COMMON_PATH)/rootdir/system/bin/recovery:system/bin/recovery \
+#PRODUCT_COPY_FILES += \
+#    $(COMMON_PATH)/rootdir/system/bin/recovery:system/bin/recovery \
 
 # Boot logo
 PRODUCT_COPY_FILES += \

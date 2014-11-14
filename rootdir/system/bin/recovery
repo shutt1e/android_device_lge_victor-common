@@ -1,3 +1,5 @@
 #!/system/bin/sh
-rm /cache/recovery/boot
+PATH=/system/bin
+touch /cache/recovery/boot
+sync
 
